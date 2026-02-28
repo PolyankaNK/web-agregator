@@ -1,8 +1,9 @@
 # Web Aggregator of Service Centers
 
-Агрегатор сервисных центров электроники (Киев).
+Веб агрегатор сервісних центрів в місті Києві.
 
 ## Stack
+
 - Python
 - Django
 - SQLite
