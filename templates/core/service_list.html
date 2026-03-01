@@ -6,11 +6,26 @@
   <body>
     <h1>Сервісні центри Києва</h1>
 
+    <form method="get">
+      <input
+        type="text"
+        name="q"
+        placeholder="Пошук сервісного центру..."
+        value="{{ request.GET.q }}"
+        autocomplete="off"
+      />
+      <button type="submit">Знайти</button>
+    </form>
+
     {% if services %}
     <ul>
       {% for service in services %}
       <li>
-        <strong>{{ service.name }}</strong><br />
+        <strong>
+          <a href="/services/{{ service.id }}/">
+            {{ service.name }}
+          </a> </strong
+        ><br />
         📍 {{ service.city }}<br />
         🏠 {{ service.address }}<br />
         📞 {{ service.phone }}
