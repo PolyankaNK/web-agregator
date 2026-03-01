@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Сервісні центри Києва</title>
+  </head>
+  <body>
+    <h1>Сервісні центри Києва</h1>
+
+    {% if services %}
+    <ul>
+      {% for service in services %}
+      <li>
+        <strong>{{ service.name }}</strong><br />
+        📍 {{ service.city }}<br />
+        🏠 {{ service.address }}<br />
+        📞 {{ service.phone }}
+      </li>
+      <hr />
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>Поки немає сервісних центрів.</p>
+    {% endif %}
+  </body>
+</html>
