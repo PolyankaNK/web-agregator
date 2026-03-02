@@ -1,40 +1,24 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Сервісні центри Києва</title>
-  </head>
-  <body>
-    <h1>Сервісні центри Києва</h1>
+{% extends "base.html" %} {% block title %}Сервісні центри Києва{% endblock %}
+{% block content %}
+<div class="container">
+  <h1 class="page-title">Сервісні центри Києва</h1>
 
-    <form method="get">
-      <input
-        type="text"
-        name="q"
-        placeholder="Пошук сервісного центру..."
-        value="{{ request.GET.q }}"
-        autocomplete="off"
-      />
-      <button type="submit">Знайти</button>
-    </form>
-
-    {% if services %}
-    <ul>
-      {% for service in services %}
-      <li>
-        <strong>
-          <a href="/services/{{ service.id }}/">
-            {{ service.name }}
-          </a> </strong
-        ><br />
-        📍 {{ service.city }}<br />
-        🏠 {{ service.address }}<br />
-        📞 {{ service.phone }}
-      </li>
-      <hr />
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p>Поки немає сервісних центрів.</p>
-    {% endif %}
-  </body>
-</html>
+  {% if services %}
+  <ul class="service-list">
+    {% for service in services %}
+    <li class="service-card">
+      <strong>
+        <a href="/services/{{ service.id }}/"> {{ service.name }} </a> </strong
+      ><br />
+      📍 {{ service.city }}<br />
+      🏠 {{ service.address }}<br />
+      📞 {{ service.phone }}
+    </li>
+    <hr />
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty-text">Поки немає сервісних центрів.</p>
+  {% endif %}
+</div>
+{% endblock %}

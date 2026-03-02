@@ -1,16 +1,16 @@
-<!doctype html>
-<html>
-  <head>
-    <title>{{ service.name }}</title>
-  </head>
-  <body>
-    <h1>{{ service.name }}</h1>
+{% extends "base.html" %}
 
-    <p><strong>Місто:</strong> {{ service.city }}</p>
-    <p><strong>Адреса:</strong> {{ service.address }}</p>
-    <p><strong>Телефон:</strong> {{ service.phone }}</p>
+{% block title %}
+{{ service.name }}
+{% endblock %}
 
-    <hr />
-    <a href="/services/">← Назад до списку</a>
-  </body>
-</html>
+{% block content %}
+<h1>{{ service.name }}</h1>
+
+<p><strong>Місто:</strong> {{ service.city }}</p>
+<p><strong>Адреса:</strong> {{ service.address }}</p>
+<p><strong>Телефон:</strong> {{ service.phone }}</p>
+
+<hr />
+<a href="/services/">← Назад до списку</a>
+{% endblock %}

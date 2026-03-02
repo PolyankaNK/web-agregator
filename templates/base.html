@@ -1,0 +1,67 @@
+{% load static %}
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}WebAgregator{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  </head>
+
+  <body>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+      <div class="container header__inner">
+        
+        <!-- Лого -->
+        <div class="logo">
+          <a href="/">WebAgregator</a>
+        </div>
+
+        <!-- Пошук -->
+        <form class="header__search" method="get" action="/services/">
+          <svg
+            class="search-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.125 14.225l-3.681-3.681A6.455 6.455 0 006.454 0a6.453 6.453 0 100 12.906 6.419 6.419 0 004.087-1.46l3.68 3.679a.637.637 0 10.904-.9zm-8.672-2.603a5.175 5.175 0 01-5.172-5.169 5.178 5.178 0 015.172-5.172 5.18 5.18 0 015.172 5.172 5.177 5.177 0 01-5.172 5.169z"
+              fill="#67758E"
+            />
+          </svg>
+
+          <input
+            type="text"
+            name="q"
+            placeholder="Пошук сервісів..."
+            value="{{ request.GET.q }}"
+            autocomplete="off"
+          />
+        </form>
+
+        <!-- Права частина -->
+        <div class="header__actions">
+          <a href="#" class="btn">Додати сервіс</a>
+          <a href="#" class="btn btn--outline">Увійти</a>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ===== MAIN ===== -->
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+      <div class="container">
+        <p>© 2026 WebAgregator</p>
+      </div>
+    </footer>
+  </body>
+</html>
