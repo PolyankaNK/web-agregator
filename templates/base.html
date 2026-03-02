@@ -6,51 +6,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}WebAgregator{% endblock %}</title>
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!--<link rel="stylesheet" href="{% static 'css/style.css' %}" /> -->
   </head>
 
   <body>
     <!-- ===== HEADER ===== -->
-    <header class="header">
-      <div class="container header__inner">
-        
-        <!-- Лого -->
-        <div class="logo">
-          <a href="/">WebAgregator</a>
-        </div>
+    <header class="bg-white border-b border-gray-200">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center gap-6">
 
-        <!-- Пошук -->
-        <form class="header__search" method="get" action="/services/">
-          <svg
-            class="search-icon"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M15.125 14.225l-3.681-3.681A6.455 6.455 0 006.454 0a6.453 6.453 0 100 12.906 6.419 6.419 0 004.087-1.46l3.68 3.679a.637.637 0 10.904-.9zm-8.672-2.603a5.175 5.175 0 01-5.172-5.169 5.178 5.178 0 015.172-5.172 5.18 5.18 0 015.172 5.172 5.177 5.177 0 01-5.172 5.169z"
-              fill="#67758E"
-            />
-          </svg>
+    <!-- Лого -->
+    <a href="/" class="text-2xl font-bold text-blue-600 whitespace-nowrap">
+      WebAgregator
+    </a>
 
-          <input
-            type="text"
-            name="q"
-            placeholder="Пошук сервісів..."
-            value="{{ request.GET.q }}"
-            autocomplete="off"
-          />
-        </form>
+    <!-- пошук -->
+    <form method="get" action="/services/" class="relative flex-1 max-w-xl">
+      <svg
+        class="absolute left-3 top-1/2 -translate-y-1/2 opacity-60"
+        width="16"
+        height="16"
+        viewBox="0 0 16 16"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M15.125 14.225l-3.681-3.681A6.455 6.455 0 006.454 0a6.453 6.453 0 100 12.906 6.419 6.419 0 004.087-1.46l3.68 3.679a.637.637 0 10.904-.9zm-8.672-2.603a5.175 5.175 0 01-5.172-5.169 5.178 5.178 0 015.172-5.172 5.18 5.18 0 015.172 5.172 5.177 5.177 0 01-5.172 5.169z"
+          fill="#67758E"
+        />
+      </svg>
 
-        <!-- Права частина -->
-        <div class="header__actions">
-          <a href="#" class="btn">Додати сервіс</a>
-          <a href="#" class="btn btn--outline">Увійти</a>
-        </div>
+      <input
+        type="text"
+        name="q"
+        placeholder="Пошук сервісів..."
+        value="{{ request.GET.q }}"
+        autocomplete="off"
+        class="w-full h-11 pl-10 pr-4 rounded-xl border border-gray-300 bg-gray-50
+               focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500
+               transition"
+      />
+    </form>
 
-      </div>
-    </header>
+    <!-- Кнопки -->
+    <div class="flex gap-3 whitespace-nowrap">
+      <a href="#"
+         class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm
+                hover:bg-blue-700 hover:scale-105 transition">
+        Додати сервіс
+      </a>
+
+      <a href="#"
+         class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg text-sm
+                hover:bg-blue-600 hover:text-white hover:scale-105 transition">
+        Увійти
+      </a>
+    </div>
+
+  </div>
+</header>
 
     <!-- ===== MAIN ===== -->
     <main class="container">

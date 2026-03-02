@@ -27,3 +27,6 @@ Thumbs.db
 
 # Testing
 .pytest_cache/
+
+#tailwind
+tailwind.config.js
