@@ -18,3 +18,12 @@ def service_list(request):
 def service_detail(request, pk):
     service = get_object_or_404(ServiceCenter, pk=pk)
     return render(request, 'core/service_detail.html', {'service': service})
+
+def login_page(request):
+    return render(request,"accounts/login.html")
+
+def register_page(request):
+    return render(request,"accounts/register.html")
+
+def account_page(request):
+    return render(request,"accounts/account.html")
