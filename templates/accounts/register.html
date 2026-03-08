@@ -18,31 +18,29 @@ class="w-full border p-2 rounded">
 class="w-full border p-2 rounded">
 
 <div class="relative">
+  <input
+    id="password"
+    type="password"
+    placeholder="Password"
+    class="w-full border p-2 rounded pr-10"
+  >
 
-<input id="password"
-type="password"
-placeholder="Password"
-class="w-full border p-2 rounded pr-10">
-
-<button type="button"
-id="togglePassword"
-class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black">
-
-<svg xmlns="http://www.w3.org/2000/svg"
-width="20"
-height="20"
-fill="none"
-stroke="currentColor"
-stroke-width="2"
-viewBox="0 0 24 24">
-
-<path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
-<circle cx="12" cy="12" r="3"/>
-
-</svg>
-
-</button>
-
+  <button
+    type="button"
+    id="togglePassword"
+    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg"
+         width="20"
+         height="20"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         viewBox="0 0 24 24">
+      <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  </button>
 </div>
 
 <input id="password2"
@@ -66,52 +64,58 @@ class="w-full border p-2 rounded">
 </div>
 
 <script>
+document.getElementById("registerForm").addEventListener("submit", async function(e) {
+  e.preventDefault()
 
-document.getElementById("registerForm").addEventListener("submit", async function(e){
+  const data = {
+    first_name: document.getElementById("first_name").value,
+    last_name: document.getElementById("last_name").value,
+    email: document.getElementById("email").value,
+    password: document.getElementById("password").value,
+    password2: document.getElementById("password2").value
+  }
 
-e.preventDefault()
+  const response = await fetch("/accounts/register/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  })
 
-const data = {
-first_name: document.getElementById("first_name").value,
-last_name: document.getElementById("last_name").value,
-email: document.getElementById("email").value,
-password: document.getElementById("password").value,
-password2: document.getElementById("password2").value
-}
+  const result = await response.json()
 
-const response = await fetch("/accounts/register/",{
-method:"POST",
-headers:{
-"Content-Type":"application/json"
-},
-body:JSON.stringify(data)
+  if (response.ok) {
+    alert("Акаунт успішно створено")
+    window.location.href = "/login"
+  } else {
+    const message =
+      result.email?.[0] ||
+      result.password?.[0] ||
+      result.password2?.[0] ||
+      result.first_name?.[0] ||
+      result.last_name?.[0] ||
+      result.non_field_errors?.[0] ||
+      "Помилка реєстрації"
+
+    alert(message)
+  }
 })
-
-const result = await response.json()
-
-alert("Account created")
-
-window.location.href="/login"
-
-})
-
 </script>
 
 <script>
+const passwordInput = document.getElementById("password");
+const togglePassword = document.getElementById("togglePassword");
 
-const passwordInput = document.getElementById("password")
-const togglePassword = document.getElementById("togglePassword")
-
-togglePassword.addEventListener("click", function(){
-
-if(passwordInput.type === "password"){
-passwordInput.type = "text"
-}else{
-passwordInput.type = "password"
+if (togglePassword && passwordInput) {
+  togglePassword.addEventListener("click", function () {
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+    } else {
+      passwordInput.type = "password";
+    }
+  });
 }
-
-})
-
 </script>
 
 {% endblock %}

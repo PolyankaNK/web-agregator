@@ -175,16 +175,19 @@
       const accountBtn = document.getElementById("accountBtn");
       const accountText = document.getElementById("accountText");
       const logoutBtn = document.getElementById("logoutBtn");
+      const addServiceBtn = document.getElementById("addServiceBtn"); 
 
       if (token) {
-        accountBtn.href = "/account";
-        accountText.textContent = "Кабінет";
-        logoutBtn.classList.remove("hidden");
-      } else {
-        accountBtn.href = "/login";
-        accountText.textContent = "Увійти";
-        logoutBtn.classList.add("hidden")
-      }
+      accountBtn.href = "/account";
+      accountText.textContent = "Кабінет";
+      logoutBtn.classList.remove("hidden");
+      addServiceBtn.classList.remove("hidden");
+    } else {
+      accountBtn.href = "/login";
+      accountText.textContent = "Увійти";
+      logoutBtn.classList.add("hidden");
+      addServiceBtn.classList.add("hidden");
+}
 
       logoutBtn.addEventListener("click", function () {
         localStorage.removeItem("token");

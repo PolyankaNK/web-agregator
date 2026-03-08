@@ -3,6 +3,8 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import exceptions
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -62,12 +64,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
     
 class LoginSerializer(serializers.Serializer):
-
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-
         email = data.get("email")
         password = data.get("password")
 
@@ -89,3 +89,23 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("id", "first_name", "last_name", "email")
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("password")
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise exceptions.AuthenticationFailed("Користувача з таким email не існує")
+
+        if not user.check_password(password):
+            raise exceptions.AuthenticationFailed("Невірний пароль")
+
+        data = super().validate({
+            "username": user.username,
+            "password": password
+        })
+
+        return data
