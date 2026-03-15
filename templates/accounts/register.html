@@ -2,56 +2,86 @@
 
 {% block content %}
 
-<div class="min-h-[8vh] flex items-center justify-center">
+<div class="min-h-[85vh] flex items-center justify-center">
   <div class="w-full max-w-md bg-white p-8 rounded-xl shadow">
 
     <h2 class="text-2xl font-bold mb-6 text-blue-500 text-center">Register</h2>
 
     <form id="registerForm" class="space-y-4">
 
-    <input id="first_name" type="text" placeholder="First name"
-    class="w-full border p-2 rounded">
+      <div>
+        <input
+          id="first_name"
+          type="text"
+          placeholder="First name"
+          class="w-full border p-2 rounded"
+        >
+        <p id="first_nameError" class="hidden text-sm text-red-500 mt-1"></p>
+      </div>
 
-    <input id="last_name" type="text" placeholder="Last name"
-    class="w-full border p-2 rounded">
+      <div>
+        <input
+          id="last_name"
+          type="text"
+          placeholder="Last name"
+          class="w-full border p-2 rounded"
+        >
+        <p id="last_nameError" class="hidden text-sm text-red-500 mt-1"></p>
+      </div>
 
-    <input id="email" type="email" placeholder="Email"
-    class="w-full border p-2 rounded">
+      <div>
+        <input
+          id="email"
+          type="email"
+          placeholder="Email"
+          class="w-full border p-2 rounded"
+        >
+        <p id="emailError" class="hidden text-sm text-red-500 mt-1"></p>
+      </div>
 
-    <div class="relative">
-      <input
-        id="password"
-        type="password"
-        placeholder="Password"
-        class="w-full border p-2 rounded pr-10"
-      >
+      <div>
+        <div class="relative">
+          <input
+            id="password"
+            type="password"
+            placeholder="Password"
+            class="w-full border p-2 rounded pr-10"
+          >
 
-      <button
-        type="button"
-        id="togglePassword"
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            viewBox="0 0 24 24">
-          <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
+          <button
+            type="button"
+            id="togglePassword"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24">
+              <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+
+        <p id="passwordError" class="hidden text-sm text-red-500 mt-1"></p>
+      </div>
+
+      <div>
+        <input
+          id="password2"
+          type="password"
+          placeholder="Repeat password"
+          class="w-full border p-2 rounded"
+        >
+        <p id="password2Error" class="hidden text-sm text-red-500 mt-1"></p>
+      </div>
+
+      <button class="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800">
+        Зареєструватися
       </button>
-    </div>
-
-    <input id="password2"
-    type="password"
-    placeholder="Repeat password"
-    class="w-full border p-2 rounded">
-
-    <button class="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800">
-    Зареєструватися
-    </button>
 
     </form>
 
@@ -65,8 +95,42 @@
 </div>
 
 <script>
+function clearErrors() {
+  const fields = ["first_name", "last_name", "email", "password", "password2"];
+
+  fields.forEach(field => {
+    const input = document.getElementById(field);
+    const error = document.getElementById(field + "Error");
+
+    if (input) {
+      input.classList.remove("border-red-500");
+    }
+
+    if (error) {
+      error.textContent = "";
+      error.classList.add("hidden");
+    }
+  });
+}
+
+function showError(field, message) {
+  const input = document.getElementById(field);
+  const error = document.getElementById(field + "Error");
+
+  if (input) {
+    input.classList.add("border-red-500");
+  }
+
+  if (error) {
+    error.textContent = message;
+    error.classList.remove("hidden");
+  }
+}
+
 document.getElementById("registerForm").addEventListener("submit", async function(e) {
-  e.preventDefault()
+  e.preventDefault();
+
+  clearErrors();
 
   const data = {
     first_name: document.getElementById("first_name").value,
@@ -74,7 +138,7 @@ document.getElementById("registerForm").addEventListener("submit", async functio
     email: document.getElementById("email").value,
     password: document.getElementById("password").value,
     password2: document.getElementById("password2").value
-  }
+  };
 
   const response = await fetch("/accounts/register/", {
     method: "POST",
@@ -82,26 +146,27 @@ document.getElementById("registerForm").addEventListener("submit", async functio
       "Content-Type": "application/json"
     },
     body: JSON.stringify(data)
-  })
+  });
 
-  const result = await response.json()
+  const result = await response.json();
 
   if (response.ok) {
-    alert("Акаунт успішно створено")
-    window.location.href = "/login"
-  } else {
-    const message =
-      result.email?.[0] ||
-      result.password?.[0] ||
-      result.password2?.[0] ||
-      result.first_name?.[0] ||
-      result.last_name?.[0] ||
-      result.non_field_errors?.[0] ||
-      "Помилка реєстрації"
-
-    alert(message)
+    alert("Акаунт успішно створено");
+    window.location.href = "/login";
+    return;
   }
-})
+
+  if (result.first_name) showError("first_name", result.first_name[0]);
+  if (result.last_name) showError("last_name", result.last_name[0]);
+  if (result.email) showError("email", result.email[0]);
+  if (result.password) showError("password", result.password[0]);
+  if (result.password2) showError("password2", result.password2[0]);
+
+  if (result.non_field_errors) {
+    showError("password", result.non_field_errors[0]);
+  }
+});
+
 </script>
 
 <script>

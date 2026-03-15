@@ -9,37 +9,44 @@
 
     <form id="loginForm" class="space-y-4">
 
-      <input
-        id="email"
-        type="email"
-        placeholder="Email"
-        class="w-full border p-2 rounded"
-      >
-
-      <div class="relative">
+      <div>
         <input
-          id="password"
-          type="password"
-          placeholder="Password"
-          class="w-full border p-2 rounded pr-10"
+          id="email"
+          type="email"
+          placeholder="Email"
+          class="w-full border p-2 rounded"
         >
+        <p id="emailError" class="hidden text-sm text-red-500 mt-1"></p>
+      </div>
 
-        <button
-          type="button"
-          id="togglePassword"
-          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg"
-               width="20"
-               height="20"
-               fill="none"
-               stroke="currentColor"
-               stroke-width="2"
-               viewBox="0 0 24 24">
-            <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
+      <div>
+        <div class="relative">
+          <input
+            id="password"
+            type="password"
+            placeholder="Password"
+            class="w-full border p-2 rounded pr-10"
+          >
+
+          <button
+            type="button"
+            id="togglePassword"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                viewBox="0 0 24 24">
+              <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8-10-8-10-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+
+        <p id="passwordError" class="hidden text-sm text-red-500 mt-1"></p>
       </div>
 
       <button class="w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-800">
@@ -74,8 +81,42 @@ if (togglePassword && passwordInput) {
 </script>
 
 <script>
+function clearLoginErrors() {
+  const fields = ["email", "password"];
+
+  fields.forEach(field => {
+    const input = document.getElementById(field);
+    const error = document.getElementById(field + "Error");
+
+    if (input) {
+      input.classList.remove("border-red-500");
+    }
+
+    if (error) {
+      error.textContent = "";
+      error.classList.add("hidden");
+    }
+  });
+}
+
+function showLoginError(field, message) {
+  const input = document.getElementById(field);
+  const error = document.getElementById(field + "Error");
+
+  if (input) {
+    input.classList.add("border-red-500");
+  }
+
+  if (error) {
+    error.textContent = message;
+    error.classList.remove("hidden");
+  }
+}
+
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
   e.preventDefault();
+
+  clearLoginErrors();
 
   const data = {
     email: document.getElementById("email").value,
@@ -95,12 +136,19 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   if (response.ok && result.access) {
     localStorage.setItem("token", result.access);
     window.location.href = "/account";
+    return;
+  }
+
+  if (result.non_field_errors) {
+    showLoginError("password", result.non_field_errors[0]);
+  } else if (result.detail) {
+    showLoginError("password", result.detail);
+  } else if (result.email) {
+    showLoginError("email", result.email[0]);
+  } else if (result.password) {
+    showLoginError("password", result.password[0]);
   } else {
-    alert(
-      result.non_field_errors?.[0] ||
-      result.detail ||
-      "Невірний email або пароль"
-    );
+    showLoginError("password", "Невірний email або пароль");
   }
 });
 </script>
