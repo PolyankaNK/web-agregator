@@ -1,16 +1,83 @@
 {% extends "base.html" %}
-
-{% block title %}
-{{ service.name }}
-{% endblock %}
+{% block title %}{{ service.name }}{% endblock %}
 
 {% block content %}
-<h1>{{ service.name }}</h1>
+<div class="max-w-6xl mx-auto">
 
-<p><strong>Місто:</strong> {{ service.city }}</p>
-<p><strong>Адреса:</strong> {{ service.address }}</p>
-<p><strong>Телефон:</strong> {{ service.phone }}</p>
+  <!-- навігація -->
+  <div class="mb-6 text-sm text-gray-500">
+    <a href="/" class="hover:text-blue-600 transition">Головна</a>
+    <span class="mx-2">/</span>
+    <a href="{% url 'service_list' %}" class="hover:text-blue-600 transition">Сервісні центри</a>
+    <span class="mx-2">/</span>
+    <span class="text-gray-700 font-medium">{{ service.name }}</span>
+  </div>
 
-<hr />
-<a href="/services/">← Назад до списку</a>
+  <!-- верхній блок -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+    <!-- Ліва частина -->
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow border border-gray-200 p-6">
+      <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ service.name }}</h1>
+
+      <!-- Карта -->
+      <div class="w-full h-[320px] rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 text-lg">
+        Тут буде карта сервісу
+      </div>
+    </div>
+
+    <!-- Права частина -->
+    <div class="bg-white rounded-2xl shadow border border-gray-200 p-6 flex flex-col gap-4">
+
+      {% if service.phone %}
+        <a href="tel:{{ service.phone }}"
+           class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 transition">
+          {{ service.phone }}
+        </a>
+      {% endif %}
+
+      {% if service.website %}
+        <a href="{{ service.website }}" target="_blank"
+           class="w-full px-4 py-3 border border-blue-600 text-blue-600 rounded-lg text-center hover:bg-blue-600 hover:text-white transition">
+          Перейти на сайт
+        </a>
+      {% endif %}
+
+      <button type="button"
+        class="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+        Додати в обране
+      </button>
+
+      <div class="border-t pt-4 space-y-3 text-sm text-gray-700">
+        <p><span class="font-semibold">Місто:</span> {{ service.city }}</p>
+        <p><span class="font-semibold">Адреса:</span> {{ service.address }}</p>
+
+        {% if service.website %}
+          <p>
+            <span class="font-semibold">Сайт:</span>
+            <a href="{{ service.website }}" target="_blank" class="text-blue-600 hover:underline break-all">
+              {{ service.website }}
+            </a>
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Нижній блок -->
+  <div class="bg-white rounded-2xl shadow border border-gray-200 p-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Про сервіс</h2>
+
+    {% if service.description %}
+      <p class="text-gray-600 leading-7">
+        {{ service.description }}
+      </p>
+    {% else %}
+      <p class="text-gray-500">
+        Опис сервісу поки не додано.
+      </p>
+    {% endif %}
+  </div>
+
+</div>
 {% endblock %}

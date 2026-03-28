@@ -1,24 +1,67 @@
-{% extends "base.html" %} {% block title %}Сервісні центри Києва{% endblock %}
+{% extends "base.html" %}
+{% block title %}Сервісні центри Києва{% endblock %}
+
 {% block content %}
-<div class="container">
-  <h1 class="page-title">Сервісні центри Києва</h1>
+<div class="max-w-6xl mx-auto">
+  <h1 class="text-3xl font-bold text-blue-600 mb-8">Сервісні центри Києва</h1>
 
   {% if services %}
-  <ul class="service-list">
-    {% for service in services %}
-    <li class="service-card">
-      <strong>
-        <a href="/services/{{ service.id }}/"> {{ service.name }} </a> </strong
-      ><br />
-      📍 {{ service.city }}<br />
-      🏠 {{ service.address }}<br />
-      📞 {{ service.phone }}
-    </li>
-    <hr />
-    {% endfor %}
-  </ul>
+    <div class="space-y-6">
+      {% for service in services %}
+        <div class="bg-white rounded-2xl shadow p-6 border border-gray-200 hover:shadow-lg transition">
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold text-gray-800 mb-2">
+                <a href="/services/{{ service.slug }}/" class="hover:text-blue-600 transition">
+                  {{ service.name }}
+                </a>
+              </h2>
+
+              {% if service.description %}
+                <p class="text-gray-600 mb-4">
+                  {{ service.description|truncatechars:140 }}
+                </p>
+              {% endif %}
+
+              <div class="space-y-2 text-sm text-gray-700">
+                <p><span class="font-semibold">Місто:</span> {{ service.city }}</p>
+                <p><span class="font-semibold">Адреса:</span> {{ service.address }}</p>
+
+                {% if service.phone %}
+                  <p><span class="font-semibold">Телефон:</span> {{ service.phone }}</p>
+                {% endif %}
+
+                {% if service.website %}
+                  <p>
+                    <span class="font-semibold">Сайт:</span>
+                    <a href="{{ service.website }}" target="_blank" class="text-blue-600 hover:underline">
+                      {{ service.website }}
+                    </a>
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="flex flex-row md:flex-col gap-3 md:min-w-[180px]">
+              <a href="/services/{{ service.slug }}/"
+                 class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm text-center hover:bg-blue-700 transition">
+                Детальніше
+              </a>
+
+              <button
+                type="button"
+                class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition">
+                В обране
+              </button>
+            </div>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
   {% else %}
-  <p class="empty-text">Поки немає сервісних центрів.</p>
+    <p class="text-gray-500">Поки немає сервісних центрів.</p>
   {% endif %}
 </div>
 {% endblock %}

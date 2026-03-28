@@ -1,5 +1,4 @@
 from django.shortcuts import render, get_object_or_404
-from core.models import ServiceCenter
 from .models import ServiceCenter
 
 def home(request):
@@ -15,9 +14,9 @@ def service_list(request):
     }
     return render(request, "core/service_list.html", context)
 
-def service_detail(request, pk):
-    service = get_object_or_404(ServiceCenter, pk=pk)
-    return render(request, 'core/service_detail.html', {'service': service})
+def service_detail(request, slug):
+    service = get_object_or_404(ServiceCenter, slug=slug)
+    return render(request, "core/service_detail.html", {"service": service})
 
 def login_page(request):
     return render(request,"accounts/login.html")
