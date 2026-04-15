@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import ServiceCenter
+from .models import ServiceCenter, Favorite
 from .forms import ServiceReviewForm
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import ServiceReviewCreateSerializer
+from .serializers import ServiceReviewCreateSerializer, FavoriteSerializer, ServiceCenterListSerializer
+
 
 def home(request):
     return render(request, 'core/home.html')
@@ -106,3 +107,47 @@ def create_service_review(request, slug):
         }, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def toggle_favorite(request, slug):
+    service = get_object_or_404(ServiceCenter, slug=slug)
+
+    favorite = Favorite.objects.filter(
+        user=request.user,
+        service_center=service
+    ).first()
+
+    if favorite:
+        favorite.delete()
+        return Response({
+            "status": "removed",
+            "message": "Сервіс видалено з обраного."
+        }, status=status.HTTP_200_OK)
+
+    Favorite.objects.create(
+        user=request.user,
+        service_center=service
+    )
+
+    return Response({
+        "status": "added",
+        "message": "Сервіс додано в обране."
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def favorite_services(request):
+    favorites = Favorite.objects.filter(user=request.user).select_related("service_center")
+    serializer = FavoriteSerializer(favorites, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(["GET"])
+def service_centers_json(request):
+    services = ServiceCenter.objects.all()
+    serializer = ServiceCenterListSerializer(services, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+def favorites_page(request):
+    return render(request, "core/favorites.html")

@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title %}Обране{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8 min-h-[85vh]">
+
+<!-- навігація -->
+<div class="mb-6 text-sm text-gray-500">
+  <a href="/" class="hover:text-blue-600 transition">Головна</a>
+  <span class="mx-2">/</span>
+  <span class="text-gray-700 font-medium">Обране</span>
+</div>
+
+<!-- заголовок -->
+<div class="mb-8 text-center">
+  <h1 class="text-4xl font-bold text-blue-600 mb-3">Обране</h1>
+  <p id="favorites-subtitle" class="text-gray-600">
+    Тут будуть збережені сервісні центри.
+  </p>
+</div>
+
+  <!-- список обраного -->
+<div id="favorites-list" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+
+  <!-- якщо пусто -->
+  <div id="favorites-empty" class="hidden bg-white rounded-2xl shadow border border-gray-200 p-8 text-center text-gray-500">
+    У вас поки немає обраних сервісів.
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const favoritesList = document.getElementById("favorites-list");
+    const favoritesEmpty = document.getElementById("favorites-empty");
+    const favoritesSubtitle = document.getElementById("favorites-subtitle");
+
+    function getToken() {
+      return (
+        localStorage.getItem("access") ||
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("token")
+      );
+    }
+
+    function getGuestFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem("guest_favorites") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function setGuestFavorites(favorites) {
+      localStorage.setItem("guest_favorites", JSON.stringify(favorites));
+    }
+
+    function showEmpty() {
+      favoritesList.innerHTML = "";
+      favoritesEmpty.classList.remove("hidden");
+    }
+
+    function hideEmpty() {
+      favoritesEmpty.classList.add("hidden");
+    }
+
+   function renderFavoriteCard(service, isAuthenticatedUser = false) {
+    return `
+        <div class="bg-white rounded-2xl shadow border border-gray-200 p-4 h-full">
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+
+            <div class="flex-1 min-w-0">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">
+                ${service.name}
+            </h2>
+
+            <p class="text-gray-600 text-base leading-7 max-w-md">
+                ${service.description ? service.description : "Опис сервісу поки не додано."}
+            </p>
+            </div>
+
+            <div class="flex flex-col gap-2 w-full lg:w-[210px] shrink-0">
+                <a
+                    href="/services/${service.slug}/"
+                    class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg text-center text-base hover:bg-blue-700 transition"
+                >
+                    Детальніше
+                </a>
+
+                <button
+                    type="button"
+                    class="remove-favorite-btn w-full px-4 py-2 border border-red-400 text-red-400 rounded-lg text-center text-base hover:bg-red-500 hover:text-white transition"
+                    data-service-id="${service.id}"
+                    data-service-slug="${service.slug}"
+                    data-auth="${isAuthenticatedUser ? "1" : "0"}"
+                >
+                    Видалити з обраного
+                </button>
+                </div>
+
+        </div>
+        </div>
+    `;
+    }
+
+    async function loadGuestFavorites() {
+      const guestFavorites = getGuestFavorites();
+
+      favoritesSubtitle.innerHTML = `
+        Ви можете користуватись обраним як гість.
+        <a href="/login/" class="text-blue-600 hover:underline">Увійдіть</a>
+        в акаунт, щоб мати окреме збережене обране.
+      `;
+
+      if (!guestFavorites.length) {
+        showEmpty();
+        return;
+      }
+
+      try {
+        const response = await fetch("/services/json/");
+        if (!response.ok) {
+          showEmpty();
+          return;
+        }
+
+        const services = await response.json();
+        const filtered = services.filter(service => guestFavorites.includes(service.id));
+
+        if (!filtered.length) {
+          showEmpty();
+          return;
+        }
+
+        hideEmpty();
+        favoritesList.innerHTML = filtered.map(service => renderFavoriteCard(service, false)).join("");
+      } catch (error) {
+        console.log("Помилка завантаження гостьового обраного:", error);
+        showEmpty();
+      }
+    }
+
+    async function loadUserFavorites(token) {
+      favoritesSubtitle.textContent = "Ваші збережені сервісні центри.";
+
+      try {
+        const response = await fetch("/api/favorites/", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          showEmpty();
+          return;
+        }
+
+        const favorites = await response.json();
+
+        if (!favorites.length) {
+          showEmpty();
+          return;
+        }
+
+        const serviceIds = favorites.map(item => item.service_center);
+
+        const servicesResponse = await fetch("/services/json/");
+        if (!servicesResponse.ok) {
+          showEmpty();
+          return;
+        }
+
+        const services = await servicesResponse.json();
+        const filtered = services.filter(service => serviceIds.includes(service.id));
+
+        if (!filtered.length) {
+          showEmpty();
+          return;
+        }
+
+        hideEmpty();
+        favoritesList.innerHTML = filtered.map(service => renderFavoriteCard(service, true)).join("");
+      } catch (error) {
+        console.log("Помилка завантаження обраного користувача:", error);
+        showEmpty();
+      }
+    }
+
+    favoritesList.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".remove-favorite-btn");
+      if (!btn) return;
+
+      const serviceId = Number(btn.dataset.serviceId);
+      const serviceSlug = btn.dataset.serviceSlug;
+      const isAuth = btn.dataset.auth === "1";
+      const token = getToken();
+
+      if (!isAuth) {
+        let guestFavorites = getGuestFavorites();
+        guestFavorites = guestFavorites.filter(id => id !== serviceId);
+        setGuestFavorites(guestFavorites);
+
+        const card = btn.closest(".bg-white");
+        if (card) {
+          card.remove();
+        }
+
+        window.dispatchEvent(new Event("favoritesUpdated"));
+
+        if (!guestFavorites.length) {
+          showEmpty();
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(`/services/${serviceSlug}/favorite/toggle/`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (response.ok) {
+          const card = btn.closest(".bg-white");
+          if (card) {
+            card.remove();
+          }
+
+          window.dispatchEvent(new Event("favoritesUpdated"));
+
+          if (!favoritesList.children.length) {
+            showEmpty();
+          }
+        }
+      } catch (error) {
+        console.log("Помилка видалення з обраного:", error);
+      }
+    });
+
+    const token = getToken();
+
+    if (token) {
+      await loadUserFavorites(token);
+    } else {
+      await loadGuestFavorites();
+    }
+  });
+</script>
+{% endblock %}

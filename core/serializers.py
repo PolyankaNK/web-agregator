@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import ServiceReview
-
+from .models import ServiceReview, Favorite, ServiceCenter
 
 class ServiceReviewCreateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,4 +20,13 @@ class ServiceReviewCreateSerializer(serializers.ModelSerializer):
         if value < 1 or value > 5:
             raise serializers.ValidationError("Оцінка якості має бути від 1 до 5.")
         return value
-    
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = ["id", "service_center", "created_at"]
+
+class ServiceCenterListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceCenter
+        fields = ["id", "name", "slug", "description", "city", "address", "phone", "website"]

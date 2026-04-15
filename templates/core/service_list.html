@@ -2,7 +2,7 @@
 {% block title %}Сервісні центри Києва{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto">
+<div class="max-w-6xl mx-auto px-10 py-8">
   <h1 class="text-3xl font-bold text-blue-600 mb-8">Сервісні центри Києва</h1>
 
   {% if services %}
@@ -51,8 +51,11 @@
 
               <button
                 type="button"
-                class="px-4 py-2 border border-blue-600 text-blue-600 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition">
-                В обране
+                class="favorite-list-btn px-4 py-2 border border-blue-600 text-blue-600 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition"
+                data-service-id="{{ service.id }}"
+                data-service-slug="{{ service.slug }}"
+              >
+                Додати в обране
               </button>
             </div>
 
@@ -64,4 +67,121 @@
     <p class="text-gray-500">Поки немає сервісних центрів.</p>
   {% endif %}
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const favoriteButtons = document.querySelectorAll(".favorite-list-btn");
+
+    function getToken() {
+      return (
+        localStorage.getItem("access") ||
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("token")
+      );
+    }
+
+    function getGuestFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem("guest_favorites") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function setGuestFavorites(favorites) {
+      localStorage.setItem("guest_favorites", JSON.stringify(favorites));
+    }
+
+    function updateButton(button, isFavorite) {
+      if (isFavorite) {
+        button.textContent = "В обраному";
+        button.classList.remove("border-blue-600", "text-blue-600");
+        button.classList.add("border-green-600", "text-green-600");
+      } else {
+        button.textContent = "Додати в обране";
+        button.classList.remove("border-green-600", "text-green-600");
+        button.classList.add("border-blue-600", "text-blue-600");
+      }
+    }
+
+    const token = getToken();
+
+    if (!favoriteButtons.length) return;
+
+    if (!token) {
+      const guestFavorites = getGuestFavorites();
+
+      favoriteButtons.forEach((button) => {
+        const serviceId = Number(button.dataset.serviceId);
+        updateButton(button, guestFavorites.includes(serviceId));
+
+        button.addEventListener("click", () => {
+          let favorites = getGuestFavorites();
+
+          if (favorites.includes(serviceId)) {
+            favorites = favorites.filter(id => id !== serviceId);
+            setGuestFavorites(favorites);
+            updateButton(button, false);
+          } else {
+            favorites.push(serviceId);
+            setGuestFavorites(favorites);
+            updateButton(button, true);
+          }
+
+          window.dispatchEvent(new Event("favoritesUpdated"));
+        });
+      });
+
+      return;
+    }
+
+    let favoriteIds = [];
+
+    try {
+      const response = await fetch("/api/favorites/", {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (response.ok) {
+        const favoritesData = await response.json();
+        favoriteIds = favoritesData.map(item => item.service_center);
+      }
+    } catch (error) {
+      console.log("Помилка завантаження обраного:", error);
+    }
+
+    favoriteButtons.forEach((button) => {
+      const serviceId = Number(button.dataset.serviceId);
+      const serviceSlug = button.dataset.serviceSlug;
+
+      updateButton(button, favoriteIds.includes(serviceId));
+
+      button.addEventListener("click", async () => {
+        try {
+          const response = await fetch(`/services/${serviceSlug}/favorite/toggle/`, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            updateButton(button, data.status === "added");
+            window.dispatchEvent(new Event("favoritesUpdated"));
+          }
+        } catch (error) {
+          console.log("Помилка перемикання обраного:", error);
+        }
+      });
+    });
+  });
+</script>
+
 {% endblock %}

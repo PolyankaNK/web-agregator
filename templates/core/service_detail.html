@@ -43,8 +43,13 @@
         </a>
       {% endif %}
 
-      <button type="button"
-        class="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+      <button
+        type="button"
+        id="favorite-toggle-btn"
+        data-service-id="{{ service.id }}"
+        data-service-slug="{{ service.slug }}"
+        class="w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition"
+      >
         Додати в обране
       </button>
 
@@ -257,26 +262,23 @@
 
     const token = getToken();
 
-    if (!token) {
-      return;
-    }
+    if (token) {
+      try {
+        const meResponse = await fetch("/accounts/me/", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
 
-    try {
-      const meResponse = await fetch("/accounts/me/", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
+        if (meResponse.ok) {
+          authMessage.classList.add("hidden");
+          formWrapper.classList.remove("hidden");
         }
-      });
-
-      if (meResponse.ok) {
-        authMessage.classList.add("hidden");
-        formWrapper.classList.remove("hidden");
+      } catch (error) {
+        console.log("Помилка перевірки авторизації:", error);
       }
-    } catch (error) {
-      console.log("Помилка перевірки авторизації:", error);
-      return;
     }
 
     if (!reviewForm) {
@@ -330,6 +332,99 @@
         showStatus("Сталася помилка під час надсилання відгуку.", "error");
       }
     });
+    
+      const favoriteBtn = document.getElementById("favorite-toggle-btn");
+
+    function getGuestFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem("guest_favorites") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function setGuestFavorites(favorites) {
+      localStorage.setItem("guest_favorites", JSON.stringify(favorites));
+    }
+
+    function updateFavoriteButton(isFavorite) {
+      if (!favoriteBtn) return;
+
+      if (isFavorite) {
+        favoriteBtn.textContent = "В обраному";
+        favoriteBtn.classList.remove("text-gray-700", "border-gray-300");
+        favoriteBtn.classList.add("text-blue-600", "border-blue-600");
+      } else {
+        favoriteBtn.textContent = "Додати в обране";
+        favoriteBtn.classList.remove("text-blue-600", "border-blue-600");
+        favoriteBtn.classList.add("text-gray-700", "border-gray-300");
+      }
+    }
+
+    if (favoriteBtn) {
+      const serviceId = Number(favoriteBtn.dataset.serviceId);
+      const serviceSlug = favoriteBtn.dataset.serviceSlug;
+
+      if (!token) {
+        const guestFavorites = getGuestFavorites();
+        updateFavoriteButton(guestFavorites.includes(serviceId));
+
+        favoriteBtn.addEventListener("click", () => {
+          let favorites = getGuestFavorites();
+
+          if (favorites.includes(serviceId)) {
+            favorites = favorites.filter(id => id !== serviceId);
+            setGuestFavorites(favorites);
+            updateFavoriteButton(false);
+            window.dispatchEvent(new Event("favoritesUpdated"));
+          } else {
+            favorites.push(serviceId);
+            setGuestFavorites(favorites);
+            updateFavoriteButton(true);
+            window.dispatchEvent(new Event("favoritesUpdated"));
+          }
+        });
+      } else {
+        try {
+          const favoritesResponse = await fetch("/api/favorites/", {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          });
+
+          if (favoritesResponse.ok) {
+            const favoritesData = await favoritesResponse.json();
+            const isFavorite = favoritesData.some(item => item.service_center === serviceId);
+            updateFavoriteButton(isFavorite);
+          }
+        } catch (error) {
+          console.log("Помилка завантаження обраного:", error);
+        }
+
+        favoriteBtn.addEventListener("click", async () => {
+          try {
+            const response = await fetch(`/services/${serviceSlug}/favorite/toggle/`, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+              }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              updateFavoriteButton(data.status === "added");
+              window.dispatchEvent(new Event("favoritesUpdated"));
+            }
+          } catch (error) {
+            console.log("Помилка перемикання обраного:", error);
+          }
+        });
+      }
+    }
   });
 </script>
 {% endblock %}

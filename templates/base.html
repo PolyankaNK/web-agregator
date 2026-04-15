@@ -41,7 +41,14 @@
         </form>
 
         <div class="flex gap-3 whitespace-nowrap items-center">
-          <a href="#" class="flex items-center justify-center px-2 py-2 rounded-lg transition transform hover:scale-110">
+          <a href="{% url 'favorites_page' %}" class="relative flex items-center justify-center px-2 py-2 rounded-lg transition transform hover:scale-110">
+            <span
+              id="favoritesBadge"
+              class="hidden absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center leading-none"
+            >
+              0
+            </span>
+
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-heart text-blue-600" viewBox="0 0 16 16">
               <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01z M8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15" />
             </svg>
@@ -137,6 +144,13 @@
 
           <div class="flex flex-col gap-3">
             <a
+              href="{% url 'favorites_page' %}"
+              class="px-4 py-3 border border-blue-600 text-blue-600 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition"
+            >
+              Обране
+            </a>
+            
+            <a
               href="{% url 'service_list' %}"
               class="px-4 py-3 border border-blue-600 text-blue-600 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition"
             >
@@ -172,7 +186,9 @@
     </header>
 
     <!-- ===== MAIN ===== -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 py-6">{% block content %}{% endblock %}</main>
+    <main class="flex-grow w-full py-6">
+      {% block content %}{% endblock %}
+    </main>
 
     <!-- ===== FOOTER ===== -->
     <footer class="bg-gray-800 text-white py-10">
@@ -197,16 +213,16 @@
 
         <div class="flex flex-col items-start">
           <h2 class="text-lg font-bold mb-2">Підтримка</h2>
-          <p class="mb-1">АДРЕСА</p>
-          <p class="mb-1">ПОШТА</p>
-          <p class="mb-1">НОМЕР</p>
+          <p class="mb-1">м.Київ, вул. Лариси Руденко, 15/14</p>
+          <p class="mb-1">nik.polyanka@gmail.com</p>
+          <p class="mb-1">+380 (50) 683-53-90</p>
         </div>
 
         <div class="flex flex-col items-start">
           <h2 class="text-lg font-bold mb-2">Акаунт</h2>
-          <a href="#" class="mb-1 hover:text-blue-400 transition">Мій кабінет</a>
-          <a href="#" class="mb-1 hover:text-blue-400 transition">Вхід / Реєстрація</a>
-          <a href="#" class="mb-1 hover:text-blue-400 transition">Обране</a>
+          <a href="/account/" class="mb-1 hover:text-blue-400 transition">Мій кабінет</a>
+          <a href="/login/" class="mb-1 hover:text-blue-400 transition">Вхід / Реєстрація</a>
+          <a href="/favorites/" class="mb-1 hover:text-blue-400 transition">Обране</a>
         </div>
 
         <div class="flex flex-col items-start">
@@ -222,7 +238,15 @@
     </footer>
 
     <script>
-      const token = localStorage.getItem("token");
+      function getToken() {
+        return (
+          localStorage.getItem("access") ||
+          localStorage.getItem("access_token") ||
+          localStorage.getItem("token")
+        );
+      }
+
+      const token = getToken();
 
       const accountBtn = document.getElementById("accountBtn");
       const accountText = document.getElementById("accountText");
@@ -236,6 +260,73 @@
 
       const mobileMenuBtn = document.getElementById("mobileMenuBtn");
       const mobileMenu = document.getElementById("mobileMenu");
+
+      const favoritesBadge = document.getElementById("favoritesBadge");
+
+      function getToken() {
+        return (
+          localStorage.getItem("access") ||
+          localStorage.getItem("access_token") ||
+          localStorage.getItem("token")
+        );
+      }
+
+      function getGuestFavorites() {
+        try {
+          return JSON.parse(localStorage.getItem("guest_favorites") || "[]");
+        } catch {
+          return [];
+        }
+      }
+
+      async function updateFavoritesBadge() {
+        if (!favoritesBadge) return;
+
+        const token = getToken();
+
+        if (!token) {
+          const guestFavorites = getGuestFavorites();
+          const count = guestFavorites.length;
+
+          if (count > 0) {
+            favoritesBadge.textContent = count > 99 ? "99+" : count;
+            favoritesBadge.classList.remove("hidden");
+          } else {
+            favoritesBadge.classList.add("hidden");
+          }
+          return;
+        }
+
+        try {
+          const response = await fetch("/api/favorites/", {
+            method: "GET",
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          });
+
+          if (!response.ok) {
+            favoritesBadge.classList.add("hidden");
+            return;
+          }
+
+          const favorites = await response.json();
+          const count = favorites.length;
+
+          if (count > 0) {
+            favoritesBadge.textContent = count > 99 ? "99+" : count;
+            favoritesBadge.classList.remove("hidden");
+          } else {
+            favoritesBadge.classList.add("hidden");
+          }
+        } catch (error) {
+          console.log("Помилка оновлення badge обраного:", error);
+          favoritesBadge.classList.add("hidden");
+        }
+      }
+      updateFavoritesBadge();
+      window.addEventListener("favoritesUpdated", updateFavoritesBadge);
 
       if (token) {
         accountBtn.href = "/account";
