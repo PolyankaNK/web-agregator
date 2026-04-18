@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from cloudinary.models import CloudinaryField
 
 
 class ServiceCenter(models.Model):
@@ -56,7 +57,7 @@ class ServiceCenterImage(models.Model):
         related_name="images",
         verbose_name="Сервісний центр"
     )
-    image = models.ImageField(upload_to="service_centers/", verbose_name="Фото")
+    image = CloudinaryField(folder="service_centers", verbose_name="Фото")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

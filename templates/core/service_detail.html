@@ -88,16 +88,43 @@
     {% endif %}
 
     {% if images %}
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-        {% for image in images %}
-          <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
-            <img
-              src="{{ image.image.url }}"
-              alt="{{ service.name }}"
-              class="w-full h-48 object-cover"
+      <div class="mt-6 relative">
+        <button
+          type="button"
+          id="galleryPrevBtn"
+          class="hidden absolute left-[-14px] top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow border border-gray-200 hover:bg-gray-50 transition"
+        >
+          &#10094;
+        </button>
+
+        <div
+          id="serviceGalleryTrack"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          {% for image in images %}
+            <button
+              type="button"
+              class="gallery-image-btn overflow-hidden rounded-xl border border-gray-200 bg-gray-50 text-left {% if forloop.counter > 4 %}hidden{% endif %}"
+              data-index="{{ forloop.counter0 }}"
+              data-src="{{ image.image.url }}"
+              data-alt="{{ service.name }}"
             >
-          </div>
-        {% endfor %}
+              <img
+                src="{{ image.image.url }}"
+                alt="{{ service.name }}"
+                class="w-full h-48 object-cover hover:scale-105 transition duration-300"
+              >
+            </button>
+          {% endfor %}
+        </div>
+
+        <button
+          type="button"
+          id="galleryNextBtn"
+          class="hidden absolute right-[-14px] top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white shadow border border-gray-200 hover:bg-gray-50 transition"
+        >
+          &#10095;
+        </button>
       </div>
     {% endif %}
   </div>
@@ -226,6 +253,44 @@
           </form>
         </div>
       </div>
+
+      <!-- Модальне вікно галереї -->
+      <div
+        id="galleryModal"
+        class="hidden fixed inset-0 z-[100] bg-black/80 flex items-center justify-center px-4"
+      >
+        <button
+          type="button"
+          id="galleryModalClose"
+          class="absolute top-5 right-5 text-white text-4xl leading-none hover:opacity-80 transition"
+        >
+          &times;
+        </button>
+
+        <button
+          type="button"
+          id="galleryModalPrev"
+          class="absolute left-4 md:left-8 text-white text-4xl w-12 h-12 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 transition"
+        >
+          &#10094;
+        </button>
+
+        <img
+          id="galleryModalImage"
+          src=""
+          alt=""
+          class="max-w-full max-h-[85vh] rounded-xl shadow-2xl"
+        >
+
+        <button
+          type="button"
+          id="galleryModalNext"
+          class="absolute right-4 md:right-8 text-white text-4xl w-12 h-12 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/50 transition"
+        >
+          &#10095;
+        </button>
+      </div>
+
 </div>
 
 <script>
@@ -425,6 +490,125 @@
         });
       }
     }
+
+    const galleryButtons = document.querySelectorAll(".gallery-image-btn");
+    const galleryPrevBtn = document.getElementById("galleryPrevBtn");
+    const galleryNextBtn = document.getElementById("galleryNextBtn");
+
+    const galleryModal = document.getElementById("galleryModal");
+    const galleryModalImage = document.getElementById("galleryModalImage");
+    const galleryModalClose = document.getElementById("galleryModalClose");
+    const galleryModalPrev = document.getElementById("galleryModalPrev");
+    const galleryModalNext = document.getElementById("galleryModalNext");
+
+    const galleryItems = Array.from(galleryButtons).map((btn) => ({
+      src: btn.dataset.src,
+      alt: btn.dataset.alt
+    }));
+
+    let currentGalleryIndex = 0;
+    let galleryPage = 0;
+    const perPage = 4;
+
+    function updateGalleryPage() {
+      galleryButtons.forEach((btn, index) => {
+        const start = galleryPage * perPage;
+        const end = start + perPage;
+        btn.classList.toggle("hidden", !(index >= start && index < end));
+      });
+
+      if (galleryPrevBtn) {
+        galleryPrevBtn.classList.toggle("hidden", galleryItems.length <= perPage || galleryPage === 0);
+      }
+
+      if (galleryNextBtn) {
+        const maxPage = Math.floor((galleryItems.length - 1) / perPage);
+        galleryNextBtn.classList.toggle("hidden", galleryItems.length <= perPage || galleryPage >= maxPage);
+      }
+    }
+
+    function openGalleryModal(index) {
+      if (!galleryItems.length) return;
+
+      currentGalleryIndex = index;
+      galleryModalImage.src = galleryItems[index].src;
+      galleryModalImage.alt = galleryItems[index].alt || "";
+      galleryModal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+    }
+
+    function closeGalleryModal() {
+      galleryModal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    function showPrevImage() {
+      if (!galleryItems.length) return;
+      currentGalleryIndex = (currentGalleryIndex - 1 + galleryItems.length) % galleryItems.length;
+      openGalleryModal(currentGalleryIndex);
+    }
+
+    function showNextImage() {
+      if (!galleryItems.length) return;
+      currentGalleryIndex = (currentGalleryIndex + 1) % galleryItems.length;
+      openGalleryModal(currentGalleryIndex);
+    }
+
+    if (galleryButtons.length) {
+      updateGalleryPage();
+
+      galleryButtons.forEach((btn, index) => {
+        btn.addEventListener("click", () => openGalleryModal(index));
+      });
+
+      if (galleryPrevBtn) {
+        galleryPrevBtn.addEventListener("click", () => {
+          if (galleryPage > 0) {
+            galleryPage -= 1;
+            updateGalleryPage();
+          }
+        });
+      }
+
+      if (galleryNextBtn) {
+        galleryNextBtn.addEventListener("click", () => {
+          const maxPage = Math.floor((galleryItems.length - 1) / perPage);
+          if (galleryPage < maxPage) {
+            galleryPage += 1;
+            updateGalleryPage();
+          }
+        });
+      }
+
+      if (galleryModalClose) {
+        galleryModalClose.addEventListener("click", closeGalleryModal);
+      }
+
+      if (galleryModalPrev) {
+        galleryModalPrev.addEventListener("click", showPrevImage);
+      }
+
+      if (galleryModalNext) {
+        galleryModalNext.addEventListener("click", showNextImage);
+      }
+
+      if (galleryModal) {
+        galleryModal.addEventListener("click", (e) => {
+          if (e.target === galleryModal) {
+            closeGalleryModal();
+          }
+        });
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (galleryModal.classList.contains("hidden")) return;
+
+        if (e.key === "Escape") closeGalleryModal();
+        if (e.key === "ArrowLeft") showPrevImage();
+        if (e.key === "ArrowRight") showNextImage();
+      });
+    }
+
   });
 </script>
 {% endblock %}
