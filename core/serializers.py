@@ -30,3 +30,8 @@ class ServiceCenterListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceCenter
         fields = ["id", "name", "slug", "description", "city", "address", "phone", "website"]
+
+class ServiceCenterMapSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceCenter
+        fields = ["id", "name", "slug", "address", "latitude", "longitude"]

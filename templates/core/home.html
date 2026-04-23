@@ -5,8 +5,110 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold text-blue-600">
-  Сайт працює
-</h1>
-{% endblock %}
+<div class="max-w-6xl mx-auto px-4 py-10">
 
+  <div class="text-center mb-10">
+    <p class="text-gray-600 text-lg">
+      Зручний пошук сервісних центрів з відгуками, цінами та картою.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-2xl shadow border border-gray-200 p-6 text-center transition duration-300 hover:scale-105 hover:shadow-lg">
+      <p class="text-sm text-gray-500 mb-2">Сервісних центрів</p>
+      <h3 class="text-4xl font-bold text-blue-600">{{ service_count }}</h3>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow border border-gray-200 p-6 text-center transition duration-300 hover:scale-105 hover:shadow-lg">
+      <p class="text-sm text-gray-500 mb-2">Відгуків</p>
+      <h3 class="text-4xl font-bold text-blue-600">{{ review_count }}</h3>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow border border-gray-200 p-6 text-center transition duration-300 hover:scale-105 hover:shadow-lg">
+      <p class="text-sm text-gray-500 mb-2">Середня оцінка</p>
+      <h3 class="text-4xl font-bold text-blue-600">{{ average_rating }}/5</h3>
+    </div>
+  </div>
+
+  <div class="mt-12 bg-white rounded-2xl shadow border border-gray-200 p-6">
+    <div class="mb-6 text-center">
+      <h2 class="text-3xl font-bold text-blue-600 mb-3">Сервісні центри Києва</h2>
+      <p class="text-gray-600">
+        Перегляньте розташування сервісних центрів на карті Києва.
+      </p>
+    </div>
+
+    <div
+      id="homeServicesMap"
+      class="relative z-0 w-full h-[500px] rounded-xl border border-gray-200 overflow-hidden"
+    ></div>
+  </div>
+
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const mapElement = document.getElementById("homeServicesMap");
+    if (!mapElement) return;
+
+    const map = L.map("homeServicesMap").setView([50.4501, 30.5234], 11);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    try {
+      const response = await fetch("/services/map-json/");
+      if (!response.ok) return;
+
+      const services = await response.json();
+
+      services.forEach((service) => {
+        if (!service.latitude || !service.longitude) return;
+
+        const customMarker = L.divIcon({
+          className: "custom-service-marker",
+          html: `
+            <div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="#2563eb" viewBox="0 0 16 16" style="display:block;">
+                <path fill-rule="evenodd" d="M8 1a3 3 0 1 0 0 6 3 3 0 0 0 0-6M4 4a4 4 0 1 1 4.5 3.969V13.5a.5.5 0 0 1-1 0V7.97A4 4 0 0 1 4 3.999zm2.493 8.574a.5.5 0 0 1-.411.575c-.712.118-1.28.295-1.655.493a1.3 1.3 0 0 0-.37.265.3.3 0 0 0-.057.09V14l.002.008.016.033a.6.6 0 0 0 .145.15c.165.13.435.27.813.395.751.25 1.82.414 3.024.414s2.273-.163 3.024-.414c.378-.126.648-.265.813-.395a.6.6 0 0 0 .146-.15l.015-.033L12 14v-.004a.3.3 0 0 0-.057-.09 1.3 1.3 0 0 0-.37-.264c-.376-.198-.943-.375-1.655-.493a.5.5 0 1 1 .164-.986c.77.127 1.452.328 1.957.594C12.5 13 13 13.4 13 14c0 .426-.26.752-.544.977-.29.228-.68.413-1.116.558-.878.293-2.059.465-3.34.465s-2.462-.172-3.34-.465c-.436-.145-.826-.33-1.116-.558C3.26 14.752 3 14.426 3 14c0-.599.5-1 .961-1.243.505-.266 1.187-.467 1.957-.594a.5.5 0 0 1 .575.411"/>
+              </svg>
+              <div style="
+                position:absolute;
+                top:1px;
+                left:50%;
+                transform:translateX(-50%);
+                width:15px;
+                height:15px;
+                background:#2563eb;
+                border-radius:9999px;
+              "></div>
+            </div>
+          `,
+          iconSize: [36, 36],
+          iconAnchor: [18, 34],
+          popupAnchor: [0, -30]
+        });
+
+        const marker = L.marker(
+          [parseFloat(service.latitude), parseFloat(service.longitude)],
+          { icon: customMarker }
+        ).addTo(map);
+
+        marker.bindPopup(`
+          <div style="min-width: 220px; line-height: 1.5;">
+            <strong>${service.name}</strong><br>
+            ${service.address}<br><br>
+            <a href="/services/${service.slug}/" style="color:#2563eb;text-decoration:none;font-weight:600;">
+              Детальніше
+            </a>
+          </div>
+        `);
+      });
+    } catch (error) {
+      console.log("Помилка завантаження карти сервісів:", error);
+    }
+  });
+</script>
+
+{% endblock %}

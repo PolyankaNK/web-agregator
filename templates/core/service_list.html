@@ -1,71 +1,152 @@
 {% extends "base.html" %}
-{% block title %}Сервісні центри Києва{% endblock %}
+
+{% block title %}
+Сервісні центри
+{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-10 py-8">
-  <h1 class="text-3xl font-bold text-blue-600 mb-8">Сервісні центри Києва</h1>
+<div class="max-w-7xl mx-auto px-4 py-8">
 
-  {% if services %}
-    <div class="space-y-6">
-      {% for service in services %}
-        <div class="bg-white rounded-2xl shadow p-6 border border-gray-200 hover:shadow-lg transition">
-          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            
-            <div class="flex-1">
-              <h2 class="text-2xl font-bold text-gray-800 mb-2">
-                <a href="/services/{{ service.slug }}/" class="hover:text-blue-600 transition">
-                  {{ service.name }}
-                </a>
-              </h2>
+  <!-- навігація -->
+  <div class="mb-6 text-sm text-gray-500">
+    <a href="/" class="hover:text-blue-600 transition">Головна</a>
+    <span class="mx-2">/</span>
+    <span class="text-gray-700 font-medium">Сервісні центри</span>
+  </div>
 
-              {% if service.description %}
-                <p class="text-gray-600 mb-4">
-                  {{ service.description|truncatechars:140 }}
-                </p>
-              {% endif %}
+  <!-- Заголовок -->
+  <div class="mb-8">
+    <h1 class="text-4xl font-bold text-blue-600 mb-3">Список сервісних центрів</h1>
+    <p class="text-gray-600">
+      Знайдіть сервісний центр за районом, категорією або назвою.
+    </p>
+  </div>
 
-              <div class="space-y-2 text-sm text-gray-700">
-                <p><span class="font-semibold">Місто:</span> {{ service.city }}</p>
-                <p><span class="font-semibold">Адреса:</span> {{ service.address }}</p>
+  <!-- Основний layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)] gap-8">
 
-                {% if service.phone %}
-                  <p><span class="font-semibold">Телефон:</span> {{ service.phone }}</p>
-                {% endif %}
+    <!-- Ліва панель -->
+    <aside class="bg-white rounded-2xl shadow border border-gray-200 p-6 h-fit">
+      <h2 class="text-xl font-bold text-gray-800 mb-6">Фільтри</h2>
 
-                {% if service.website %}
-                  <p>
-                    <span class="font-semibold">Сайт:</span>
-                    <a href="{{ service.website }}" target="_blank" class="text-blue-600 hover:underline">
-                      {{ service.website }}
+      <form method="get" action="{% url 'service_list' %}" class="space-y-6">
+        <div>
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Пошук
+          </h3>
+          <input
+            type="text"
+            name="q"
+            value="{{ query }}"
+            placeholder="Назва сервісу"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+          >
+        </div>
+
+        <div>
+          <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            Район
+          </h3>
+          <select
+            name="district"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+          >
+            <option value="">Усі райони</option>
+            {% for value, label in district_choices %}
+              <option value="{{ value }}" {% if selected_district == value %}selected{% endif %}>
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Застосувати
+        </button>
+
+        <a
+          href="{% url 'service_list' %}"
+          class="block w-full px-4 py-3 border border-gray-300 text-gray-700 rounded-lg text-center hover:bg-gray-100 transition"
+        >
+          Скинути фільтри
+        </a>
+      </form>
+    </aside>
+
+    <!-- Права частина -->
+    <section>
+      {% if services %}
+        <div class="space-y-6">
+          {% for service in services %}
+            <div class="bg-white rounded-2xl shadow border border-gray-200 p-6">
+              <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+
+                <!-- Інформація -->
+                <div class="flex-1 min-w-0">
+                  <h2 class="text-2xl font-bold text-gray-800 mb-3">
+                    <a href="{% url 'service_detail' service.slug %}" class="hover:text-blue-600 transition">
+                      {{ service.name }}
                     </a>
+                  </h2>
+
+                  <p class="text-gray-600 mb-5 leading-7">
+                    {{ service.description|default:"Опис сервісу поки не додано." }}
                   </p>
-                {% endif %}
+
+                  <div class="space-y-2 text-gray-700">
+                    <p><span class="font-semibold">Місто:</span> {{ service.city }}</p>
+                    {% if service.district %}
+                      <p><span class="font-semibold">Район:</span> {{ service.get_district_display }}</p>
+                    {% endif %}
+                    <p><span class="font-semibold">Адреса:</span> {{ service.address }}</p>
+                    {% if service.phone %}
+                      <p><span class="font-semibold">Телефон:</span> {{ service.phone }}</p>
+                    {% endif %}
+                    {% if service.website %}
+                      <p>
+                        <span class="font-semibold">Сайт:</span>
+                        <a href="{{ service.website }}" target="_blank" class="text-blue-600 hover:underline break-all">
+                          {{ service.website }}
+                        </a>
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+
+                <!-- Кнопки -->
+                <div class="flex flex-col gap-3 w-full lg:w-[220px] shrink-0">
+                  <a
+                    href="{% url 'service_detail' service.slug %}"
+                    class="w-full px-4 py-3 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 transition"
+                  >
+                    Детальніше
+                  </a>
+
+                  <button
+                    type="button"
+                    class="favorite-list-btn px-4 py-3 border border-blue-600 text-blue-600 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition"
+                    data-service-id="{{ service.id }}"
+                    data-service-slug="{{ service.slug }}"
+                  >
+                    Додати в обране
+                  </button>
+                </div>
+
               </div>
             </div>
-
-            <div class="flex flex-row md:flex-col gap-3 md:min-w-[180px]">
-              <a href="/services/{{ service.slug }}/"
-                 class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm text-center hover:bg-blue-700 transition">
-                Детальніше
-              </a>
-
-              <button
-                type="button"
-                class="favorite-list-btn px-4 py-2 border border-blue-600 text-blue-600 rounded-lg text-sm hover:bg-blue-600 hover:text-white transition"
-                data-service-id="{{ service.id }}"
-                data-service-slug="{{ service.slug }}"
-              >
-                Додати в обране
-              </button>
-            </div>
-
-          </div>
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p class="text-gray-500">Поки немає сервісних центрів.</p>
-  {% endif %}
+      {% else %}
+        <div class="bg-white rounded-2xl shadow border border-gray-200 p-8 text-center text-gray-500">
+          Поки немає сервісних центрів.
+        </div>
+      {% endif %}
+    </section>
+
+  </div>
 </div>
 
 <script>
@@ -183,5 +264,4 @@
     });
   });
 </script>
-
 {% endblock %}

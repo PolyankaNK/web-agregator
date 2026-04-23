@@ -3,16 +3,31 @@ from django.contrib.auth.models import User
 from django.utils.text import slugify
 from cloudinary.models import CloudinaryField
 
+KYIV_DISTRICT_CHOICES = [
+    ("holosiivskyi", "Голосіївський"),
+    ("darnytskyi", "Дарницький"),
+    ("desnianskyi", "Деснянський"),
+    ("dniprovskyi", "Дніпровський"),
+    ("obolonskyi", "Оболонський"),
+    ("pecherskyi", "Печерський"),
+    ("podilskyi", "Подільський"),
+    ("sviatoshynskyi", "Святошинський"),
+    ("solomianskyi", "Солом’янський"),
+    ("shevchenkivskyi", "Шевченківський"),
+]
 
 class ServiceCenter(models.Model):
     name = models.CharField(max_length=255, verbose_name="Назва")
     slug = models.SlugField(max_length=255, unique=True, blank=True, verbose_name="Slug")
     description = models.TextField(blank=True, verbose_name="Опис")
     city = models.CharField(max_length=100, verbose_name="Місто")
+    district = models.CharField(max_length=50, choices=KYIV_DISTRICT_CHOICES, verbose_name="Район", blank=True)
     address = models.CharField(max_length=255, verbose_name="Адреса")
     phone = models.CharField(max_length=50, blank=True, verbose_name="Телефон")
     website = models.URLField(blank=True, verbose_name="Сайт")
     working_hours = models.CharField(max_length=255, blank=True, verbose_name="Години роботи")
+    latitude = models.DecimalField(max_digits=18, decimal_places=16, null=True, blank=True, verbose_name="Широта")
+    longitude = models.DecimalField(max_digits=18, decimal_places=16, null=True, blank=True, verbose_name="Довгота")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
