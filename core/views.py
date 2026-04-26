@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import ServiceCenter, Favorite, ServiceReview, KYIV_DISTRICT_CHOICES
-from .forms import ServiceReviewForm
+from .models import ServiceCenter, Favorite, ServiceReview, KYIV_DISTRICT_CHOICES, ServiceCenterSubmission, ServiceCenterSubmissionImage
+from .forms import ServiceReviewForm, ServiceCenterSubmissionForm
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -161,3 +161,40 @@ def service_centers_map_json(request):
     services = ServiceCenter.objects.exclude(latitude__isnull=True).exclude(longitude__isnull=True)
     serializer = ServiceCenterMapSerializer(services, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+def add_service_submission(request):
+    form = ServiceCenterSubmissionForm()
+    return render(request, "core/add_service_submission.html", {"form": form})
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_service_submission(request):
+    form = ServiceCenterSubmissionForm(request.data)
+
+    if not form.is_valid():
+        return Response({
+            "errors": form.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    images = request.FILES.getlist("images")
+
+    if len(images) > 4:
+        return Response({
+            "errors": {
+                "images": ["Можна завантажити максимум 4 фото."]
+            }
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    submission = form.save(commit=False)
+    submission.user = request.user
+    submission.save()
+
+    for image in images:
+        ServiceCenterSubmissionImage.objects.create(
+            submission=submission,
+            image=image
+        )
+
+    return Response({
+        "message": "Заявку успішно надіслано. Після перевірки сервіс може бути доданий на сайт."
+    }, status=status.HTTP_201_CREATED)

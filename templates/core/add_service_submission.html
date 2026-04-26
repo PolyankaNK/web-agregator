@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}
+Додати сервіс
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  <div class="mb-6 text-sm text-gray-500">
+    <a href="/" class="hover:text-blue-600 transition">Головна</a>
+    <span class="mx-2">/</span>
+    <span class="text-gray-700 font-medium">Додати сервіс</span>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow border border-gray-200 p-6">
+    <h1 class="text-3xl font-bold text-blue-600 mb-3">Додати сервіс</h1>
+    <p class="text-gray-600 mb-6">
+      Заповніть форму. Після перевірки сервіс може бути доданий на сайт.
+    </p>
+
+    {% if success_message %}
+      <div class="mb-6 bg-green-100 text-green-700 rounded-lg px-4 py-3">
+        {{ success_message }}
+      </div>
+    {% endif %}
+    <div id="submission-form-status" class="hidden mb-6 rounded-lg px-4 py-3 text-sm"></div>
+
+    {% if form.non_field_errors %}
+      <div class="mb-6 bg-red-100 text-red-700 rounded-lg px-4 py-3">
+        {% for error in form.non_field_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form id="service-submission-form" enctype="multipart/form-data" class="space-y-5">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.name.label }}</label>
+        {{ form.name }}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.description.label }}</label>
+        {{ form.description }}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.city.label }}</label>
+          {{ form.city }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.district.label }}</label>
+          {{ form.district }}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.address.label }}</label>
+        {{ form.address }}
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.phone.label }}</label>
+          {{ form.phone }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.website.label }}</label>
+          {{ form.website }}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.working_hours.label }}</label>
+        {{ form.working_hours }}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.services_note.label }}</label>
+        {{ form.services_note }}
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Фото сервісу (до 4)
+        </label>
+        <input
+            id="submission-images"
+            type="file"
+            name="images"
+            multiple
+            accept="image/*"
+            class="w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50"
+            >
+      </div>
+
+      <button
+        type="submit"
+        class="w-full md:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+      >
+        Надіслати заявку
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("service-submission-form");
+    const statusBox = document.getElementById("submission-form-status");
+
+    function getToken() {
+      return (
+        localStorage.getItem("access") ||
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("token")
+      );
+    }
+
+    function showStatus(message, type = "error") {
+      statusBox.textContent = message;
+      statusBox.classList.remove(
+        "hidden",
+        "bg-red-100",
+        "text-red-700",
+        "bg-green-100",
+        "text-green-700"
+      );
+
+      if (type === "success") {
+        statusBox.classList.add("bg-green-100", "text-green-700");
+      } else {
+        statusBox.classList.add("bg-red-100", "text-red-700");
+      }
+    }
+
+    const token = getToken();
+
+    if (!token) {
+      window.location.href = "/login/";
+      return;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const imageInput = document.getElementById("submission-images");
+      const files = imageInput ? Array.from(imageInput.files) : [];
+
+      if (files.length > 4) {
+        showStatus("Можна завантажити максимум 4 фото.");
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/service-submissions/create/", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showStatus(data.message || "Заявку успішно надіслано.", "success");
+          form.reset();
+        } else {
+          let errorMessage = "Не вдалося надіслати заявку.";
+
+          if (data.errors) {
+            const firstKey = Object.keys(data.errors)[0];
+            if (firstKey && data.errors[firstKey]?.length) {
+              errorMessage = data.errors[firstKey][0];
+            }
+          } else if (data.detail) {
+            errorMessage = data.detail;
+          }
+
+          showStatus(errorMessage, "error");
+        }
+      } catch (error) {
+        console.log("Помилка надсилання заявки:", error);
+        showStatus("Сталася помилка під час надсилання заявки.", "error");
+      }
+    });
+  });
+</script>
+
+{% endblock %}

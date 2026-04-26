@@ -1,5 +1,5 @@
 from django import forms
-from .models import ServiceReview
+from .models import ServiceReview, ServiceCenterSubmission
 
 
 RATING_CHOICES = [
@@ -45,3 +45,48 @@ class ServiceReviewForm(forms.ModelForm):
     class Meta:
         model = ServiceReview
         fields = ["service_rating", "price_rating", "quality_rating", "comment"]
+
+class ServiceCenterSubmissionForm(forms.ModelForm):
+    class Meta:
+        model = ServiceCenterSubmission
+        fields = [
+            "name",
+            "description",
+            "city",
+            "district",
+            "address",
+            "phone",
+            "website",
+            "working_hours",
+            "services_note",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+            }),
+            "description": forms.Textarea(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 h-32 resize-none"
+            }),
+            "city": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+            }),
+            "district": forms.Select(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+            }),
+            "address": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+            }),
+            "phone": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+            }),
+            "website": forms.URLInput(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+            }),
+            "working_hours": forms.TextInput(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500"
+            }),
+            "services_note": forms.Textarea(attrs={
+                "class": "w-full px-4 py-3 rounded-lg border border-gray-300 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 h-32 resize-none",
+                "placeholder": "Послуги, які надає сервісний центр - ціна, якість, гарантія тощо"
+            }),
+        }

@@ -164,3 +164,54 @@ class ServiceReview(models.Model):
 
     def __str__(self):
         return f"{self.user.username} -> {self.service_center.name}"
+
+class ServiceCenterSubmission(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="service_submissions",
+        verbose_name="Користувач"
+    )
+    name = models.CharField(max_length=255, verbose_name="Назва")
+    description = models.TextField(blank=True, verbose_name="Опис")
+    city = models.CharField(max_length=100, verbose_name="Місто")
+    district = models.CharField(
+        max_length=50,
+        choices=KYIV_DISTRICT_CHOICES,
+        blank=True,
+        verbose_name="Район"
+    )
+    address = models.CharField(max_length=255, verbose_name="Адреса")
+    phone = models.CharField(max_length=50, blank=True, verbose_name="Телефон")
+    website = models.URLField(blank=True, verbose_name="Сайт")
+    working_hours = models.CharField(max_length=255, blank=True, verbose_name="Години роботи")
+    latitude = models.DecimalField(max_digits=20, decimal_places=16, null=True, blank=True, verbose_name="Широта")
+    longitude = models.DecimalField(max_digits=20, decimal_places=16, null=True, blank=True, verbose_name="Довгота")
+    services_note = models.TextField(blank=True, verbose_name="Послуги сервісу")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Заявка на додавання сервісу"
+        verbose_name_plural = "Заявки на додавання сервісів"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.name} ({self.user.username})"
+
+class ServiceCenterSubmissionImage(models.Model):
+    submission = models.ForeignKey(
+        ServiceCenterSubmission,
+        on_delete=models.CASCADE,
+        related_name="images",
+        verbose_name="Заявка"
+    )
+    image = CloudinaryField(folder="service_submissions", verbose_name="Фото")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Фото заявки"
+        verbose_name_plural = "Фото заявок"
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Фото заявки: {self.submission.name}"

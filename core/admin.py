@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ServiceCenter, ServiceCategory, ServiceCenterImage, ServiceOffer, Favorite, ServiceReview
+from .models import ServiceCenter, ServiceCategory, ServiceCenterImage, ServiceOffer, Favorite, ServiceReview, ServiceCenterSubmission
 
 
 class ServiceCenterImageInline(admin.TabularInline):
@@ -50,3 +50,9 @@ class ServiceReviewAdmin(admin.ModelAdmin):
     list_display = ("user", "service_center", "service_rating", "price_rating", "quality_rating", "created_at")
     list_filter = ("service_rating", "price_rating", "quality_rating", "created_at")
     search_fields = ("user__username", "service_center__name", "comment")
+
+@admin.register(ServiceCenterSubmission)
+class ServiceCenterSubmissionAdmin(admin.ModelAdmin):
+    list_display = ("name", "user", "city", "district", "created_at")
+    search_fields = ("name", "address", "user__username")
+    list_filter = ("city", "district", "created_at")
