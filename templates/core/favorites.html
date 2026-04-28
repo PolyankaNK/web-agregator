@@ -73,8 +73,8 @@
                 ${service.name}
             </h2>
 
-            <p class="text-gray-600 text-base leading-7 max-w-md">
-                ${service.description ? service.description : "Опис сервісу поки не додано."}
+            <p class="text-gray-600 leading-7 line-clamp-2 text-justify">
+              ${service.description || "Опис сервісу поки не додано."}
             </p>
             </div>
 
