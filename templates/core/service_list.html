@@ -144,6 +144,46 @@
           Поки немає сервісних центрів.
         </div>
       {% endif %}
+
+      {% if page_obj.has_other_pages %}
+        <div class="mt-8 flex items-center justify-center gap-2 flex-wrap">
+
+          {% if page_obj.has_previous %}
+            <a
+              href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+            >
+              Назад
+            </a>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <span class="px-4 py-2 bg-blue-600 text-white rounded-lg">
+                {{ num }}
+              </span>
+            {% else %}
+              <a
+                href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}"
+                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+              >
+                {{ num }}
+              </a>
+            {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <a
+              href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if selected_district %}&district={{ selected_district }}{% endif %}"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+            >
+              Далі
+            </a>
+          {% endif %}
+
+        </div>
+      {% endif %}
+
     </section>
 
   </div>

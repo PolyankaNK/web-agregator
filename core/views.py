@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import ServiceReviewCreateSerializer, FavoriteSerializer, ServiceCenterListSerializer, ServiceCenterMapSerializer
 from django.db.models import Count, Avg, F, FloatField, ExpressionWrapper, Q
+from django.core.paginator import Paginator
 
 
 def home(request):
@@ -33,6 +34,7 @@ def home(request):
 def service_list(request):
     query = request.GET.get("q", "")
     district = request.GET.get("district", "")
+    page_number = request.GET.get("page")
 
     services = ServiceCenter.objects.all()
 
@@ -46,8 +48,12 @@ def service_list(request):
     if district:
         services = services.filter(district=district)
 
+    paginator = Paginator(services, 8)
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        "services": services,
+        "services": page_obj,
+        "page_obj": page_obj,
         "query": query,
         "selected_district": district,
         "district_choices": KYIV_DISTRICT_CHOICES,
